@@ -22,7 +22,7 @@ function solve(grid, visited, current, end) {
     }
 
     // 3. Base case - already visited
-    if (visited[current.row][current.col] === true) {
+    if (visited[current.row][current.col] === 1) {
         return null;
     }
 
@@ -32,7 +32,7 @@ function solve(grid, visited, current, end) {
     }
 
     // Mark current cell as visited so we don't loop back to it
-    visited[current.row][current.col] = true;
+    visited[current.row][current.col] = 1;
 
     // Recursive case: try all 4 directions
     for (const { dr, dc } of DIRECTIONS) {
@@ -63,7 +63,7 @@ const start = { row: 0, col: 0 };
 const end = { row: 2, col: 2 };
 
 // Build a visited grid of the exact same size, defaulting to false
-const visited = grid.map(row => row.map(() => false));
+const visited = grid.map(row => row.map(() => 0));
 
 const path = solve(grid, visited, start, end);
 console.log(path, visited);

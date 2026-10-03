@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Inside your maze solver — a recursion lab</title>
+<style>
+:root{color-scheme:light;--ink:#182b32;--muted:#50656c;--paper:#f4f5ef;--panel:#fff;--line:#d8e0db;--teal:#006e64;--pale:#d8eee7;--gold:#f9df9c;--purple:#e9ddf4;--wall:#33474f}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.55 system-ui,sans-serif}main{max-width:1440px;margin:auto;padding:32px}h1{font-size:clamp(28px,4vw,46px);line-height:1.1;letter-spacing:-1.5px;margin:12px 0}h2{font-size:20px;margin:0 0 12px}h3{font-size:16px}p{margin:8px 0 16px}.eyebrow{color:var(--teal);font-size:12px;font-weight:750;letter-spacing:2px;text-transform:uppercase}.intro{max-width:850px;color:var(--muted)}a{color:var(--teal)}button,select,input{font:inherit}button,select{border:1px solid #9aada7;background:white;color:var(--ink);border-radius:8px;padding:9px 13px;cursor:pointer}button:hover{background:var(--pale)}button:disabled{opacity:.45;cursor:default}button.primary{background:var(--teal);color:white;border-color:var(--teal)}button:focus-visible,select:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid #a94dd3;outline-offset:3px}label{font-size:14px}code,pre,.mono{font-family:ui-monospace,Consolas,monospace}code{font-size:.92em}.route{display:flex;gap:8px;flex-wrap:wrap;margin:22px 0}.route span{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 14px}.controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.controls label{display:flex;align-items:center;gap:8px}.toolbar{padding:20px;background:var(--panel);border:1px solid var(--line);border-radius:14px;margin:24px 0 16px}.timeline{display:flex;gap:12px;align-items:center;margin-top:16px}.timeline input{flex:1;min-width:80px;accent-color:var(--teal)}.timeline output{font:13px ui-monospace,monospace;min-width:115px}.event{border-left:5px solid var(--teal);padding:12px 18px;background:var(--pale);margin:16px 0;min-height:107px}.event h2{margin:0 0 5px}.event p{margin:0}.workspace{display:grid;grid-template-columns:minmax(270px,1fr) minmax(270px,.95fr) minmax(300px,1.2fr);gap:16px;align-items:start}.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;min-width:0}.sub{font-size:13px;color:var(--muted)}.board{display:grid;gap:3px;margin:18px 0;max-width:540px}.cell{aspect-ratio:1;display:flex;align-items:center;justify-content:center;position:relative;border-radius:4px;font:600 14px ui-monospace,monospace;background:#eef1ed;min-width:0}.cell.axis{background:none;color:var(--muted);font-size:11px}.cell.wall{background:var(--wall);color:#e9efed}.cell.seen{background:var(--gold)}.cell.activepath{background:var(--pale)}.cell.returnpath{background:var(--purple)}.cell.current{box-shadow:inset 0 0 0 3px var(--teal)}.cell.target{outline:2px dashed #965320;outline-offset:-3px}.cell small{position:absolute;right:3px;bottom:0;font-size:10px}.legend{display:flex;gap:10px;flex-wrap:wrap;font-size:12px}.legend span{display:flex;align-items:center;gap:5px}.swatch{width:14px;height:14px;display:inline-block;border-radius:3px}.swatch.active{background:var(--pale)}.swatch.seen{background:var(--gold)}.swatch.ret{background:var(--purple)}.stack{display:flex;flex-direction:column;gap:7px;max-height:440px;overflow:auto;padding:3px}.frame{display:block;width:100%;text-align:left;border:1px solid var(--line);background:#f7f8f5;padding:10px 12px}.frame.top{border:2px solid var(--teal);background:var(--pale)}.frame.selected{box-shadow:inset 4px 0 0 #8b4ca1}.frame strong{display:block;font-size:14px}.frame span{display:block;font-size:12px;color:var(--muted)}.locals{margin-top:16px;border-top:1px solid var(--line);padding-top:12px;overflow-wrap:anywhere}.locals pre{font-size:12px;white-space:pre-wrap;margin:8px 0}.code{max-height:635px;overflow:auto;font:12px/1.8 ui-monospace,Consolas,monospace;padding:8px 0;margin:0;tab-size:2}.line{display:block;padding:0 8px;white-space:pre-wrap;overflow-wrap:anywhere;border-left:3px solid transparent}.line.live{background:var(--gold);border-left-color:#976600}.number{display:inline-block;width:26px;color:#718080;user-select:none}.returnbox{overflow-wrap:anywhere;background:#f4eff8;padding:12px;border-radius:8px;margin-top:18px;font-size:13px}.returnbox code{display:block;margin-top:5px}.study{margin-top:28px;display:grid;grid-template-columns:1fr 1fr;gap:16px}.study ol,.study ul{padding-left:22px}.study li{margin:10px 0}.study details{border-top:1px solid var(--line);padding:13px 0}.study summary{cursor:pointer;font-weight:600}.study details p{margin:12px 0 0}.checkpoint{display:flex;gap:6px;flex-wrap:wrap;margin-top:16px}.checkpoint button{font-size:12px;padding:7px 9px}.footer{margin:22px 0;color:var(--muted);font-size:13px}#output{white-space:pre;font-size:13px}.hint{font-size:13px;color:var(--muted);margin-top:12px}@media(max-width:1100px){.workspace{grid-template-columns:1fr 1fr}.source-panel{grid-column:1/-1}.code{max-height:350px}}@media(max-width:640px){main{padding:18px}.workspace,.study{grid-template-columns:1fr}.source-panel{grid-column:auto}.toolbar,.panel{padding:15px}.controls label{flex-wrap:wrap}.cell{font-size:12px}.event{min-height:140px}.timeline output{min-width:95px;font-size:11px}.route span{font-size:13px}.stack{max-height:330px}}
+</style>
+</head>
+<body><main>
+<div class="eyebrow">Your code, slowed down · recursion lab</div>
+<h1>One maze. Many waiting calls.</h1>
+<p class="intro">Watch your <code>solve()</code> run one operation at a time. The maze shows <em>where</em> it is; the stack shows <em>who is waiting</em>. Every frame has its own position, but every frame shares the same visited grid.</p>
+<div class="route" aria-label="Project flow"><span><b>maze.txt</b> → maze input</span><span><b>maze.js</b> → validate & load</span><span><b>solver.js</b> → recursive search</span><span><b>index.js</b> → print path as *</span></div>
+<div class="toolbar">
+<div class="controls">
+<label>Example <select id="example"><option value="tiny">1 · Tiny maze from solver.js</option><option value="branch">2 · A real dead end</option><option value="project">3 · Your maze.txt</option><option value="blocked">4 · No solution</option></select></label>
+<button id="prev">← Back</button><button id="next" class="primary">Next step →</button><button id="play">Play</button><button id="restart">Restart</button>
+<label>Pace <select id="speed"><option value="1400">Slow</option><option value="700" selected>Normal</option><option value="220">Fast</option></select></label>
+</div>
+<div class="timeline"><input id="scrub" type="range" min="0" value="0" aria-label="Trace step"><output id="counter"></output></div>
+<div class="checkpoint"><button data-jump="push">Next call ↓</button><button data-jump="pop">Next return ↑</button><button data-jump="dead">First exhausted cell</button><button data-jump="end">Reach E</button><button data-jump="done">Final result</button></div>
+</div>
+<section class="event" aria-live="polite" aria-atomic="true"><h2 id="event-title"></h2><p id="event-text"></p></section>
+<div class="workspace">
+<section class="panel"><h2>01 / The maze</h2><div class="sub">Coordinates are (row, col), starting at 0. Search order: Up, Down, Left, Right.</div><div id="maze" class="board" role="img"></div>
+<div class="legend"><span><i class="swatch active"></i>• accepted live call</span><span><i class="swatch seen"></i>v visited, off stack</span><span><i class="swatch ret"></i>+ returned path</span><span>outline = executing call</span><span>dashes = next target</span></div>
+<h3>Shared <code>visited</code></h3><div class="sub">1 = true · 0 = false · # = wall (still false)</div><div id="visited" class="board" role="img"></div>
+<div class="returnbox"><b id="return-label">Return value</b><code id="returned"></code></div>
+<details class="hint"><summary>What index.js prints after this run</summary><pre id="output"></pre></details>
+</section>
+<section class="panel"><h2>02 / Call stack <span id="depth" class="sub"></span></h2><div class="sub">Top executes. Lower frames are paused. Click a frame to inspect its local variables. This shows solver frames only.</div><div id="stack" class="stack"></div><div class="locals"><b id="local-title"></b><pre id="locals"></pre></div><p class="hint">A frame keeps its own <code>current</code>, direction, <code>next</code>, and child <code>result</code>. <code>grid</code>, <code>visited</code>, and <code>end</code> refer to shared objects.</p></section>
+<section class="panel source-panel"><h2>03 / Your solver.js</h2><div class="sub">Highlighted line = current operation, or the caller resuming after a return. Source snapshot from this project.</div><pre class="code" id="code" aria-label="Solver source code"></pre></section>
+</div>
+<div class="study">
+<section class="panel"><div class="eyebrow">Start here</div><h2>A guided first run</h2><ol>
+<li>Keep <b>Tiny maze</b> selected. Press <b>Next call</b>. A new frame appears for <code>solve(0, 0)</code>; this is S.</li>
+<li>Step through the four guards. Only after they pass does S become visited. Notice that no copy of the maze is created.</li>
+<li>Follow the Up call to <code>(-1, 0)</code>. It gets a frame even though it is outside the maze. It immediately returns <code>null</code>, and its frame disappears.</li>
+<li>The S frame resumes at <code>result !== null</code>. A <code>null</code> child result means “try the next direction,” not “end the entire search.”</li>
+<li>Press <b>Reach E</b>, then step forward. E returns a one-cell array. Each waiting caller adds its own cell in front. Watch the return value grow as the stack shrinks.</li>
+<li>Choose <b>A real dead end</b>, then <b>First exhausted cell</b>. Step forward to see a valid cell return <code>null</code> after all four attempts fail. Its visited flag stays true.</li>
+<li>Try <b>Your maze.txt</b>, then <b>No solution</b>. Predict whether the root call will return an array or <code>null</code> before jumping to the final result.</li>
+</ol></section>
+<section class="panel"><div class="eyebrow">The mental model</div><h2>A call is a bookmark</h2>
+<p>Imagine each call holding a bookmark at line 40: “I am at this cell, and I am waiting for this neighbor.” Calling <code>solve(next)</code> adds a bookmark above it. Returning removes the top bookmark and delivers a value to the one underneath.</p>
+<p><b>Going deeper:</b> only the newest frame runs. A parent does not keep looping in the background. It remembers its direction and waits for its child to finish.</p>
+<p><b>Backtracking:</b> the child returns <code>null</code>. Its parent resumes and tries another direction. The code does not literally move a player backward and does not set visited cells back to false.</p>
+<p><b>Success unwinding:</b> E returns <code>[E]</code>. Its parent returns <code>[parent, E]</code>. The next parent prepends itself again. The final array is ordered from S to E. Once success is found, remaining directions are skipped.</p>
+<p><b>Three different things:</b> the stack is unfinished calls; visited is a lasting record of explored cells; the returned array is the successful route. A rejected call can be on the stack without its cell being visited.</p>
+</section>
+<section class="panel"><div class="eyebrow">Understand the whole project</div><h2>From text to answer</h2><ul>
+<li><code>node index.js maze.txt</code> passes the file path through <code>process.argv[2]</code>. Missing arguments print usage and exit.</li>
+<li><code>loadMaze()</code> reads text, removes empty lines, trims trailing whitespace, splits each row into characters, and locates S and E. It rejects empty, ragged, invalid-character, missing-endpoint, and duplicate-endpoint inputs.</li>
+<li><code>index.js</code> creates a same-shaped grid of <code>false</code> values, then calls <code>solve(grid, visited, start, end)</code>.</li>
+<li>A returned array is painted as <code>*</code> on a copy of the grid, preserving S and E. A <code>null</code> result prints “No path exists.”</li>
+<li><b>One project quirk:</b> both <code>maze.js</code> and <code>solver.js</code> contain demonstration code outside their functions. Importing them also runs that code, so the command prints extra demo output before the actual answer. The lab models the requested solve call only.</li>
+</ul></section>
+<section class="panel"><div class="eyebrow">Predict, then reveal</div><h2>Check your understanding</h2>
+<details><summary>Why does a wall still create a stack frame?</summary><p>The recursive call is made before its checks run. The new frame checks bounds, then the wall, and returns null. The caller does not pre-filter neighbors.</p></details>
+<details><summary>Why is E still false in visited?</summary><p>The end guard at line 30 returns at line 31, before the visited assignment at line 35. Reaching E succeeds without marking it visited.</p></details>
+<details><summary>What if you remove the visited check?</summary><p>Adjacent open cells can keep calling each other. For example A calls B, then B calls A again. The call stack can grow until the runtime reports a stack overflow.</p></details>
+<details><summary>Does null mean “this cell is a wall”?</summary><p>No. It can mean out of bounds, a wall, already visited, or all four directions failed. Only null from the root means the entire search failed to find E.</p></details>
+<details><summary>Does this find the shortest route?</summary><p>No. Depth-first search returns the first successful route under Up, Down, Left, Right order. Breadth-first search would find a shortest route in this unweighted maze.</p></details>
+<details><summary>Are the returned arrays the same object?</summary><p>No. <code>[current, ...result]</code> allocates a new array and copies the child's elements after current. The coordinate objects inside are reused; the arrays themselves are new.</p></details>
+<details><summary>How much work and memory does this need?</summary><p>Let V be the number of cells, and L the successful path length. Search visits each reachable non-end open cell at most once and tries up to four neighbors: O(V) search work. This implementation also copies arrays of length 1 through L while unwinding, adding O(L²) copying time. The visited grid and recursion depth use O(V) space. Copied arrays may coexist during unwinding, so this return-building strategy can also use O(L²) live array-element storage. Very deep mazes can overflow the JavaScript call stack.</p></details>
+</section>
+</div><p class="footer">Offline, self-contained learning companion. The original project files are unchanged. The trace is an instrumented mirror of solve(), with separate push, check, wait, and return events; this is a conceptual call-stack view, not a JavaScript engine debugger.</p>
+</main>
+<script id="project-data" type="application/json">{"solver":"const DIRECTIONS = [\n    { dr: -1, dc: 0 }, // Up\n    { dr: 1, dc: 0 },  // Down\n    { dr: 0, dc: -1 }, // Left\n    { dr: 0, dc: 1 }   // Right\n];\n\nfunction solve(grid, visited, current, end) {\n    // 1. Base case - out of bounds\n    if (\n        current.row \u003c 0 || \n        current.row >= grid.length || \n        current.col \u003c 0 || \n        current.col >= grid[0].length\n    ) {\n        return null;\n    }\n\n    // 2. Base case - wall\n    if (grid[current.row][current.col] === \"#\") {\n        return null;\n    }\n\n    // 3. Base case - already visited\n    if (visited[current.row][current.col] === true) {\n        return null;\n    }\n\n    // 4. Base case - reached end\n    if (current.row === end.row && current.col === end.col) {\n        return [current];\n    }\n\n    // Mark current cell as visited so we don't loop back to it\n    visited[current.row][current.col] = true;\n\n    // Recursive case: try all 4 directions\n    for (const { dr, dc } of DIRECTIONS) {\n        const next = { row: current.row + dr, col: current.col + dc };\n        const result = solve(grid, visited, next, end);\n        \n        if (result !== null) {\n            return [current, ...result];\n        }\n    }\n\n    // If all 4 directions returned null, this path is a dead end\n    return null;\n}\n\n\n// A simple 3x3 grid: \n// S . #\n// # . #\n// # . E\nconst grid = [\n    [\"S\", \".\", \"#\"],\n    [\"#\", \".\", \"#\"],\n    [\"#\", \".\", \"E\"]\n];\n\nconst start = { row: 0, col: 0 };\nconst end = { row: 2, col: 2 };\n\n// Build a visited grid of the exact same size, defaulting to false\nconst visited = grid.map(row => row.map(() => false));\n\nconst path = solve(grid, visited, start, end);\nconsole.log(path, visited);\n\nmodule.exports = { solve, DIRECTIONS };","maze":"##########         \n#S...#...#\n#.##.#.#.#\n#.#..#.#.#\n#.#....#.#\n#....#..E#\n##########\n\n"}</script>
+<script>
+'use strict';
+const projectData = JSON.parse(document.getElementById('project-data').textContent);
+const examples = {
+ tiny: {name:'Tiny maze', text:'S.#\n#.#\n#.E'},
+ branch: {name:'A real dead end', text:'#######\n#S...E#\n#.#####\n#...###\n#######'},
+ project: {name:'Your maze.txt', text:projectData.maze},
+ blocked: {name:'No solution', text:'#######\n#S..#E#\n#...###\n#######'}
+};
+const directions = [{dr:-1,dc:0,name:'Up'},{dr:1,dc:0,name:'Down'},{dr:0,dc:-1,name:'Left'},{dr:0,dc:1,name:'Right'}];
+const point = p => p ? `(${p.row}, ${p.col})` : '—';
+const pathText = p => p === null ? 'null' : p === undefined ? 'not returned yet' : '[' + p.map(point).join(' → ') + ']';
+function parseMaze(text){
+ const grid=text.split('\n').filter(x=>x.length>0).map(x=>x.trimEnd().split(''));
+ let start,end;grid.forEach((row,r)=>row.forEach((c,col)=>{if(c==='S')start={row:r,col};if(c==='E')end={row:r,col};}));
+ return {grid,start,end};
+}
+function makeTrace(text){
+ const {grid,start,end}=parseMaze(text),visited=grid.map(r=>r.map(()=>false));
+ const stack=[],events=[];let serial=0,returned;
+ function record(kind,line,title,detail,extra={}){
+  events.push({kind,line,title,detail,stack:JSON.parse(JSON.stringify(stack)),visited:visited.map(r=>r.slice()),returned:returned===undefined?undefined:returned===null?null:returned.map(p=>({...p})),...extra});
+ }
+ record('ready',8,'Ready: no solver frames yet',`The caller will ask solve${point(start)} for a route to E ${point(end)}. All visited values begin false.`);
+ function walk(current){
+  const f={id:++serial,current:{...current},direction:null,next:null,resultState:'not assigned',result:null,status:'checking',accepted:false};
+  stack.push(f);record('push',8,`PUSH #${f.id}: solve${point(current)}`,`A new call owns current = ${point(current)}. ${stack.length>1?'Its parent is paused at line 40.':'This is the root call made by the caller.'}`);
+  function leave(value,line,reason){
+   f.status='returning';returned=value;
+   record(value===null?'reject':'value',line,value===null?`Return null from #${f.id}`:`Return a ${value.length}-cell path from #${f.id}`,reason);
+   stack.pop();
+   const parent=stack.at(-1);
+   if(parent){parent.result=value;parent.resultState=value===null?'null':'path';parent.status='resuming';}
+   record('pop',parent?42:line,`POP #${f.id} → ${parent?'resume #'+parent.id:'caller receives answer'}`,parent?`Frame #${f.id} is gone. Frame #${parent.id} receives ${pathText(value)} as its local result and resumes at line 42.`:`The root frame is gone. The caller receives ${pathText(value)}.`,{popped:f.id});
+   return value;
+  }
+  const outside=current.row<0||current.row>=grid.length||current.col<0||current.col>=grid[0].length;
+  record('check',10,'Guard 1 / Inside the grid?',`${point(current)} is ${outside?'outside: return null without reading a cell.':'inside: continue to the wall check.'}`);
+  if(outside)return leave(null,16,'Out of bounds. This call has no valid maze cell.');
+  const wall=grid[current.row][current.col]==='#';
+  record('check',20,'Guard 2 / Is this a wall?',wall?'Yes. A wall cannot be part of the route.':'No. Continue to the visited check.');
+  if(wall)return leave(null,21,'A wall rejects this attempt. The parent will try its next direction.');
+  const seen=visited[current.row][current.col];
+  record('check',25,'Guard 3 / Already visited?',seen?'Yes. Reject the revisit to prevent looping.':'No. Continue to the end check.');
+  if(seen)return leave(null,26,'This cell has already been explored. No visited flag is changed.');
+  const atEnd=current.row===end.row&&current.col===end.col;
+  record(atEnd?'end':'check',30,'Guard 4 / Is this E?',atEnd?'Yes! Return [current] before the visited assignment. E remains false in visited.':'No. Mark the cell visited, then explore its neighbors.');
+  if(atEnd){f.accepted=true;return leave([current],31,`The first successful array is just [${point(current)}]. Now success will travel back through waiting callers.`);}
+  visited[current.row][current.col]=true;f.accepted=true;f.status='exploring';
+  record('mark',35,`Mark ${point(current)} visited`, 'Every frame sees this same shared update. This flag will stay true even if the call later returns null.');
+  for(const d of directions){
+   f.direction=d.name;f.next={row:current.row+d.dr,col:current.col+d.dc};f.resultState='not assigned';f.result=null;f.status='preparing';
+   record('try',39,`Try ${d.name}: ${point(f.next)}`,`Frame #${f.id} computes next. The dashed maze cell is the target when it is in bounds.`);
+   f.status='waiting';record('call',40,`#${f.id} calls its ${d.name} neighbor`,`Pause this frame at line 40. Its result is not assigned until the child call returns.`);
+   const result=walk(f.next);
+   record('resume',42,`#${f.id}: is result !== null?`,result===null?`No. The ${d.name} attempt failed. Continue the loop with the next direction, if any.`:'Yes. Stop searching neighbors and prepend this frame’s current cell.');
+   if(result!==null)return leave([current,...result],43,`Create a new array: [${point(current)}, ...${pathText(result)}]. The successful route grows at the front; other directions are skipped.`);
+   f.status='exploring';
+  }
+  record('dead',48,`All four directions failed at ${point(current)}`,`This valid cell has no successful continuation. Return null to the parent. Its visited flag remains true.`);
+  return leave(null,48,'The loop is exhausted. Backtrack by returning null; do not erase visited.');
+ }
+ const result=walk(start);
+ record('done',null,result?'Finished: a route was found':'Finished: no path exists',result?`The stack is empty. The caller receives ${result.length} cells (${result.length-1} moves) from S to E, and index.js prints the dots on this route as *.`:'The root returned null after exhausting its reachable region. The stack is empty; index.js prints “No path exists.”');
+ return {grid,start,end,events,result,visited};
+}
+let trace,index=0,timer=null,selected=null;
+const el=id=>document.getElementById(id);
+const escapeHTML=s=>String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
+function buildCode(){el('code').innerHTML=projectData.solver.split('\n').slice(0,49).map((s,i)=>`<span class="line" data-line="${i+1}"><span class="number">${i+1}</span>${escapeHTML(s)}</span>`).join('');}
+function renderBoard(target,isVisited,s){
+ const node=el(target),top=s.stack.at(-1),rows=trace.grid.length,cols=trace.grid[0].length;
+ node.style.gridTemplateColumns=`22px repeat(${cols}, minmax(0,1fr))`;
+ node.style.maxWidth=`${22+cols*42}px`;
+ const matches=(a,r,c)=>a&&a.row===r&&a.col===c;
+ let html='<div class="cell axis"></div>';
+ for(let c=0;c<cols;c++)html+=`<div class="cell axis">${c}</div>`;
+ for(let r=0;r<rows;r++){
+  html+=`<div class="cell axis">${r}</div>`;
+  for(let c=0;c<cols;c++){
+   const char=trace.grid[r][c],wall=char==='#',active=s.stack.some(f=>f.accepted&&matches(f.current,r,c)),ret=Array.isArray(s.returned)&&s.returned.some(p=>matches(p,r,c));
+   let classes='cell',label=char,meaning='unvisited';
+   if(wall){classes+=' wall';meaning='wall';}
+   else if(s.visited[r][c]){classes+=' seen';meaning='visited';if(char==='.')label='v';}
+   if(!isVisited&&active&&!wall){classes+=' activepath';meaning='accepted live call';if(char==='.')label='•';}
+   if(!isVisited&&ret){classes+=' returnpath';meaning='returned path';if(char==='.')label='+';}
+   if(top&&matches(top.current,r,c))classes+=' current';
+   if(!isVisited&&top&&['try','call'].includes(s.kind)&&matches(top.next,r,c))classes+=' target';
+   if(isVisited)label=wall?'#':s.visited[r][c]?'1':'0';
+   html+=`<div class="${classes}" aria-label="row ${r}, column ${c}: ${isVisited?'visited '+s.visited[r][c]:char+' '+meaning}">${label}</div>`;
+  }
+ }
+ node.innerHTML=html;node.setAttribute('aria-label',`${isVisited?'Visited grid':'Maze'}, ${rows} rows and ${cols} columns. ${s.title}`);
+}
+function showLocals(s){
+ const f=s.stack.find(x=>x.id===selected)||s.stack.at(-1);
+ el('local-title').textContent=f?`Inspecting frame #${f.id}${f===s.stack.at(-1)?' · top':' · paused'}`:'No live solver frames';
+ el('locals').textContent=f?`current = ${point(f.current)}\ndirection = ${f.direction||'not started'}\nnext = ${point(f.next)}\nresult = ${f.resultState==='not assigned'?'not assigned yet':pathText(f.result)}\nstatus = ${f.status}\nend = ${point(trace.end)} (shared)\ngrid → shared maze\nvisited → shared boolean grid`:'The next call will push a frame, or the completed answer has returned to the caller.';
+}
+function render(){
+ const s=trace.events[index];el('event-title').textContent=s.title;el('event-text').textContent=s.detail;
+ el('counter').textContent=`${index+1} / ${trace.events.length}`;el('scrub').value=index;el('prev').disabled=index===0;el('next').disabled=index===trace.events.length-1;
+ el('depth').textContent=`· ${s.stack.length} frame${s.stack.length===1?'':'s'}`;
+ renderBoard('maze',false,s);renderBoard('visited',true,s);
+ el('stack').innerHTML=s.stack.length?s.stack.slice().reverse().map((f,i)=>`<button class="frame ${i===0?'top':''} ${f.id===selected?'selected':''}" data-frame="${f.id}"><strong>${i===0?'▶ TOP':'↳ waiting'} · #${f.id} solve${point(f.current)}</strong><span>${i===0?f.status:`paused at line 40 · ${f.direction} → ${point(f.next)}`}</span></button>`).join(''):'<p class="sub">Empty stack · control is with the caller.</p>';
+ el('stack').querySelectorAll('button').forEach(b=>b.onclick=()=>{selected=Number(b.dataset.frame);render();});
+ showLocals(s);el('returned').textContent=pathText(s.returned);el('return-label').textContent=s.kind==='done'?'Final result':'Most recent return value';
+ const old=el('code').querySelector('.live');if(old)old.classList.remove('live');
+ const line=el('code').querySelector(`[data-line="${s.line}"]`);
+ if(line){line.classList.add('live');const box=el('code');box.scrollTop=Math.max(0,line.offsetTop-box.offsetTop-box.clientHeight/2);}
+ document.querySelector('[data-jump="dead"]').disabled=!trace.events.some(e=>e.kind==='dead');
+ document.querySelector('[data-jump="end"]').disabled=!trace.events.some(e=>e.kind==='end');
+}
+function stop(){clearInterval(timer);timer=null;el('play').textContent='Play';}
+function go(n){index=Math.max(0,Math.min(trace.events.length-1,n));selected=null;render();if(index===trace.events.length-1)stop();}
+function load(){stop();trace=makeTrace(examples[el('example').value].text);el('scrub').max=trace.events.length-1;const output=trace.grid.map(r=>r.slice());if(trace.result)trace.result.forEach(({row,col})=>{if(output[row][col]==='.')output[row][col]='*';});el('output').textContent=trace.result?output.map(r=>r.join('')).join('\n'):'No path exists.';go(0);}
+el('prev').onclick=()=>{stop();go(index-1);};el('next').onclick=()=>{stop();go(index+1);};el('restart').onclick=()=>{stop();go(0);};el('example').onchange=load;
+el('scrub').oninput=()=>{stop();go(Number(el('scrub').value));};
+el('play').onclick=()=>{if(timer){stop();return;}if(index===trace.events.length-1)go(0);el('play').textContent='Pause';timer=setInterval(()=>go(index+1),Number(el('speed').value));};
+el('speed').onchange=()=>{if(timer){stop();el('play').click();}};
+document.querySelectorAll('[data-jump]').forEach(b=>b.onclick=()=>{stop();const kind=b.dataset.jump;const next=['push','pop'].includes(kind)?trace.events.findIndex((e,i)=>i>index&&e.kind===kind):trace.events.findIndex(e=>e.kind===kind);if(next>=0)go(next);});
+buildCode();load();
+</script></body></html>

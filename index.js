@@ -15,7 +15,7 @@ try {
     process.exit(1);
 }
 
-const visited = grid.map(row => row.map(() => false));
+const visited = grid.map(row => row.map(() => 0));
 const foundPath = solve(grid, visited, start, end);
 
 if (!foundPath) {
